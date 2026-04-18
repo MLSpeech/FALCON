@@ -1,2 +1,1 @@
-# DCAF2.0
-a clean new version of DCAF with regular Pytorch and new loss
+Initial commit new clean FDNFA final version - after cleaning all commnets and unnacacery functions from our latest DCAF2.0 Repo
