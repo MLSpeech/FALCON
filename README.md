@@ -10,6 +10,19 @@
 
 ---
 
+## Citation
+
+If you use FDNFA in your research, please cite:
+
+```bibtex
+@article{rousso2026fdnfa,
+  title     = {Fully Differentiable Neural Phoneme and Word Level Forced Alignment via Soft Dynamic Programming},
+  author    = {Rousso, Rotem and Cohen, Eyal and Keshet, Joseph},
+  journal   = {IEEE Journal},
+  year      = {2026}
+}
+```
+
 ## Highlights
 
 - 🎯 **Phoneme-level precision** — operates at ~10 ms frame resolution, the finest granularity among neural forced aligners.
@@ -327,21 +340,6 @@ FDNFA/
 ## Architecture Documentation
 
 For a detailed technical description of every component — including the MNCE loss formulation, Soft-DP algorithm, and data pipeline — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
-
----
-
-## Citation
-
-If you use FDNFA in your research, please cite:
-
-```bibtex
-@article{rousso2026fdnfa,
-  title     = {Fully Differentiable Neural Phoneme and Word Level Forced Alignment via Soft Dynamic Programming},
-  author    = {Rousso, Rotem and Cohen, Eyal and Keshet, Joseph},
-  journal   = {IEEE Journal},
-  year      = {2026}
-}
-```
 
 ---
 
