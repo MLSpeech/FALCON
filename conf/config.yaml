@@ -19,7 +19,7 @@ buckeye_path: /home/rotem/projects/datasets/buckeye/
 # buckeye_path: /home/rotem/projects/datasets/IFA_dutch_reorder
 
 # /home/rotem/projects/datasets/buckeye #/data/felix/datasets/buckeye_processed_by_speaker_balanced
-timit_path: /home/rotem/projects/datasets/timit/playground
+timit_path: /home/rotem/projects/datasets/timit/timit_tixed
 
 
 # timit_path: /home/rotem/projects/datasets/timit/timit_tixed
@@ -74,6 +74,14 @@ tag: default
 exp_name: default
 project: unsupervised_segmentor
 ckpt: null
+# Path to a pretrained checkpoint to load weights from before training begins.
+# When set, training proceeds as normal on the configured `data:` dataset
+# (unlike `ckpt:` which switches to test-only mode). Optimizer state is NOT
+# loaded. Used for transfer learning, e.g. TIMIT-pretrained -> Buckeye finetune.
+finetune_from: null
+# Override starting epoch. If null, defaults to 0, or to 5 when finetune_from
+# is set (skips the warm-up curriculum at epoch < 5 in solver.py).
+start_epoch: null
 dev_run: false  # fast debug run
 val_check_interval: 1.0 #0.1 #0.9 #0.003 #0.2 #1 # 0.9 #0.2 #0.9 #0.2  # how often a validation epoch is run
 # overfit_pct: 1

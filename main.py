@@ -25,7 +25,7 @@ def set_cuda_visible_devices(device_ids):
     os.environ["CUDA_VISIBLE_DEVICES"] = visible_devices
     print(f"CUDA_VISIBLE_DEVICES set to: {visible_devices}")
 
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True)  # debug-only; ~2x slower. Re-enable to track NaNs.
 
 
 @hydra.main(config_path='conf/config.yaml', strict=False)
@@ -54,19 +54,33 @@ def main(cfg):
     
     solver = Solver(cfg).to(device)
 
-    if cfg.ckpt is not None:
+    finetune_from = getattr(cfg, "finetune_from", None)
+    start_epoch_override = getattr(cfg, "start_epoch", None)
+
+    if finetune_from:
+        # Transfer-learning seed: load model weights only, fresh optimizer,
+        # skip warm-up curriculum by default.
+        print(f"finetuning from {finetune_from}")
+        ckpt = torch.load(finetune_from, map_location=device)
+        solver.load_state_dict(ckpt['model_state_dict'])
+        start_epoch = 5 if start_epoch_override is None else start_epoch_override
+        ckpt_path = os.path.join(cfg.wd, "best_model.pt")  # placeholder; overwritten in loop
+    elif cfg.ckpt is not None:
         ckpt_path = cfg.ckpt
     else:
         ckpt_path = os.path.join(cfg.wd, "best_model.pt")
-    
-    if os.path.exists(ckpt_path):
-        print(f"loading ckpt from {ckpt_path}")
-        ckpt = torch.load(ckpt_path, map_location=device)
-        solver.load_state_dict(ckpt['model_state_dict'])
-        start_epoch = ckpt.get('epoch', 0)
-    else:
-        start_epoch=0
-    
+
+    if not finetune_from:
+        if os.path.exists(ckpt_path):
+            print(f"loading ckpt from {ckpt_path}")
+            ckpt = torch.load(ckpt_path, map_location=device)
+            solver.load_state_dict(ckpt['model_state_dict'])
+            start_epoch = ckpt.get('epoch', 0)
+        else:
+            start_epoch = 0
+        if start_epoch_override is not None:
+            start_epoch = start_epoch_override
+
     if not cfg.ckpt:
         best_val_metric = float('-inf')
         for epoch in range(start_epoch, cfg.epochs):

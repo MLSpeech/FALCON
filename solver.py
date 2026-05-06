@@ -62,7 +62,17 @@ class Solver(torch.nn.Module):
         line()
 
     def prepare_data(self):
-        if "timit" in self.hp.data:
+        if "timit" in self.hp.data and "buckeye" in self.hp.data:
+            # joint training on TIMIT + Buckeye (data: timit_buckeye)
+            t_train, t_val, t_test = TrainTestDataset.get_datasets(path=self.hp.timit_path)
+            b_train, b_val, b_test = TrainValTestDataset.get_datasets(path=self.hp.buckeye_path, percent=self.hp.buckeye_percent)
+            train = ConcatDataset([t_train, b_train])
+            val   = ConcatDataset([t_val,   b_val])
+            test  = ConcatDataset([t_test,  b_test])
+            train.path = f"TIMIT+Buckeye train ({len(t_train)}+{len(b_train)})"
+            val.path   = f"TIMIT+Buckeye val ({len(t_val)}+{len(b_val)})"
+            test.path  = f"TIMIT+Buckeye test ({len(t_test)}+{len(b_test)})"
+        elif "timit" in self.hp.data:
             train, val, test = TrainTestDataset.get_datasets(path=self.hp.timit_path)
         elif "buckeye" in self.hp.data:
             train, val, test = TrainValTestDataset.get_datasets(path=self.hp.buckeye_path, percent=self.hp.buckeye_percent)
@@ -80,23 +90,30 @@ class Solver(torch.nn.Module):
         print(f"test: {self.test_dataset.path} ({len(self.test_dataset)})")
         line()
             
+        _persistent = self.hp.dataloader_n_workers > 0
         self.train_loader = DataLoader(self.train_dataset,
                                        batch_size=self.hp.batch_size,
                                        shuffle=True,
                                        collate_fn=collate_fn_padd,
-                                       num_workers=self.hp.dataloader_n_workers)
+                                       num_workers=self.hp.dataloader_n_workers,
+                                       pin_memory=True,
+                                       persistent_workers=_persistent)
 
         self.valid_loader = DataLoader(self.valid_dataset,
                                        batch_size=self.hp.batch_size,
                                        shuffle=False,
                                        collate_fn=collate_fn_padd,
-                                       num_workers=self.hp.dataloader_n_workers)
+                                       num_workers=self.hp.dataloader_n_workers,
+                                       pin_memory=True,
+                                       persistent_workers=_persistent)
 
         self.test_loader  = DataLoader(self.test_dataset,
                                        batch_size=self.hp.batch_size,
                                        shuffle=False,
                                        collate_fn=collate_fn_padd,
-                                       num_workers=self.hp.dataloader_n_workers)
+                                       num_workers=self.hp.dataloader_n_workers,
+                                       pin_memory=True,
+                                       persistent_workers=_persistent)
 
     def configure_optimizers(self):
         parameters = filter(lambda p: p.requires_grad, self.NFC.parameters())
