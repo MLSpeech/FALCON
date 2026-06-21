@@ -61,8 +61,19 @@ def get_ipa_from_ifa(ifa_label):
     ipa_list = [IFA_TO_IPA.get(p,p) for p in parts if p.strip()]
     return ipa_list
 
+_leehon39_cache = {}
+
 def find_best_leehon39(target_ipa):
-    
+    # Deterministic IPA->LH39 mapping; memoize since the panphon feature-edit
+    # distance over a fixed inventory recomputes the same answer per occurrence.
+    if target_ipa in _leehon39_cache:
+        return _leehon39_cache[target_ipa]
+    result = _find_best_leehon39(target_ipa)
+    _leehon39_cache[target_ipa] = result
+    return result
+
+def _find_best_leehon39(target_ipa):
+
     if not target_ipa or target_ipa.strip() == "":
         return "sil", 0.0
     

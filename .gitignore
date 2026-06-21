@@ -50,5 +50,5 @@ Thumbs.db
 *.bak
 
 # Local-only documentation
-ARCHITECTURE.md
-LATENT_VISUALIZATION_README.md
+*.md
+!README.md

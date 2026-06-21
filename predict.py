@@ -18,6 +18,29 @@ import os
 import dutch_preprocess
 from utils import timit_to_leehon_map_MACRO, timit_leehon_39_phonemes, timit_61_phonemes
 
+# Cache the loaded model+peak-params by checkpoint path so batch runs (many files,
+# one checkpoint) don't reload ~330MB from disk per file. Output is unchanged.
+_MODEL_CACHE = {}
+
+def _load_model(ckpt_path):
+    cached = _MODEL_CACHE.get(ckpt_path)
+    if cached is not None:
+        return cached
+    ckpt = torch.load(ckpt_path, map_location=lambda storage, loc: storage)
+    hp = ckpt["hparams"]
+    model = NextFrameClassifier(hp)
+    try:
+        weights = ckpt["state_dict"]
+    except Exception:
+        weights = ckpt["model_state_dict"]
+    weights = {k.replace("NFC.", ""): v for k, v in weights.items()}
+    model.load_state_dict(weights)
+    model.eval()
+    peak_detection_params = dill.loads(ckpt['peak_detection_params'])['cpc_1']
+    _MODEL_CACHE.clear()  # keep only the most-recent checkpoint (bounded memory)
+    _MODEL_CACHE[ckpt_path] = (model, peak_detection_params)
+    return model, peak_detection_params
+
 def main_predict(wav, ckpt, w_phi, language="english", annotation="phn", no_plots=False):
     print(f"running inference on: {wav}")
     print(f"running inferece using ckpt: {ckpt}")
@@ -30,22 +53,7 @@ def main_predict(wav, ckpt, w_phi, language="english", annotation="phn", no_plot
     if no_plots:
         plt.savefig = lambda *a, **k: None
 
-    ckpt = torch.load(ckpt, map_location=lambda storage, loc: storage)
-    hp = ckpt["hparams"]
-    # hp = Namespace(**dict(ckpt["hparams"]))
-
-    # load weights and peak detection params
-    model = NextFrameClassifier(hp)
-    try:
-        weights = ckpt["state_dict"]
-    except:
-        weights = ckpt["model_state_dict"]
-    weights = {k.replace("NFC.", ""): v for k,v in weights.items()}
-    model.load_state_dict(weights)
-    model.eval()
-    
-    
-    peak_detection_params = dill.loads(ckpt['peak_detection_params'])['cpc_1']
+    model, peak_detection_params = _load_model(ckpt)
     # peak_detection_params["prominence"] = prominence # Unused
     # load data
     audio, sr = torchaudio.load(wav)

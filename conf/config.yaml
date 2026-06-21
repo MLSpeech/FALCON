@@ -10,7 +10,7 @@ libri_path: /data/felix/datasets/librispeech
 # buckeye_path: /home/rotem/projects/datasets/IFA_dutch_reorder
 
 # buckeye_path: /home/rotem/projects/datasets/buckeye_preprocessed/
-buckeye_path: /home/rotem/projects/datasets/buckeye/
+buckeye_path: /home/rotem/projects/datasets/buckeye_preprocessed/
 # buckeye_path: /home/rotem/projects/datasets/IFA_dutch_reorder
 # buckeye_path: /home/rotem/projects/datasets/buckeye_playground
 
