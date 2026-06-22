@@ -56,22 +56,33 @@ _oov = set()          # words not found in the dictionary (for reporting)
 
 def _load_dict():
     """Parse the selected MFA dictionary once. Format: word <tab> [prob cols <tab>]
-    PHONES, where PHONES (final tab-separated field) is space-separated phones."""
+    PHONES, where PHONES (final tab-separated field) is space-separated phones and
+    the first float column (when present) is the pronunciation probability.
+
+    Like MFA, keep the **highest-probability** pronunciation per word (MFA's most-
+    likely variant; it then disambiguates acoustically, which we cannot). Entries
+    with no probability column are treated as probability 1.0."""
     global _dict
     if _dict is not None:
         return _dict
-    d = {}
+    best = {}   # word -> (prob, phones)
     with open(ARPA_DICT, "r", encoding="utf-8") as f:
         for line in f:
             line = line.rstrip("\n")
             if not line:
                 continue
             parts = line.split("\t")
+            if len(parts) < 2:
+                continue
             word = parts[0].lower()
             phones = parts[-1].split()
-            if word and word not in d:   # keep first (highest-probability) pron.
-                d[word] = phones
-    _dict = d
+            try:
+                prob = float(parts[1]) if len(parts) >= 3 else 1.0
+            except ValueError:
+                prob = 1.0
+            if word and (word not in best or prob > best[word][0]):
+                best[word] = (prob, phones)
+    _dict = {w: ph for w, (_, ph) in best.items()}
     return _dict
 
 
