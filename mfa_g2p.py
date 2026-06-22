@@ -149,14 +149,12 @@ def word_to_lh39_mfa(word):
     phones = d.get(key)
     if phones is None:
         _oov.add(key)
-        # English: real G2P WFST for OOV. Non-English: espeak fallback (no
-        # extracted G2P FST shipped for those dicts) so a missing word still
-        # yields a real pronunciation rather than silence.
+        # Pure MFA, no espeak. English OOV -> MFA's pynini WFST. German OOV is
+        # pre-resolved into the merged dictionary via MFA's own G2P. Any word
+        # still unresolved (e.g. Dutch, which has no MFA G2P model) becomes a
+        # single 'sil'/spn, exactly as MFA treats an unknown word.
         if _ALPHABET == "arpa":
             phones = _g2p_oov(key)
-        else:
-            import word_g2p
-            return word_g2p._espeak_word_lh39(word)   # already closure-handled
     if _ALPHABET == "arpa":
         lh39 = arpa_to_lh39(phones) if phones else []
     else:
