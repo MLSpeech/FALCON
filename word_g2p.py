@@ -85,7 +85,27 @@ def word_to_lh39(word, voice=None, backend=None):
     if backend == "mfa":
         import mfa_g2p  # lazy: mfa_g2p imports closure helpers from this module
         return mfa_g2p.word_to_lh39_mfa(word)
+    if backend == "char":
+        return _char_word_lh39(word)
     return _espeak_word_lh39(word, voice)
+
+
+def _char_word_lh39(word):
+    """Word -> LH39 with NO G2P model: segment the (romanized) characters with
+    panphon and map each directly to LH39 by articulatory-feature distance. Used
+    for languages with no MFA model and where a grapheme-to-phoneme converter is
+    deliberately avoided (e.g. Hebrew romanized transcripts)."""
+    key = (word.lower(), "char")
+    if key in _cache:
+        return _cache[key]
+    segs = _ft.ipa_segs(word.lower())
+    lh39 = [dutch_preprocess.find_best_leehon39(s)[0] for s in segs if s.strip()]
+    if not lh39:
+        lh39 = ["sil"]
+    if USE_CLOSURES:
+        lh39 = _with_closures(lh39)
+    _cache[key] = lh39
+    return lh39
 
 
 def _espeak_word_lh39(word, voice=DEFAULT_VOICE):
