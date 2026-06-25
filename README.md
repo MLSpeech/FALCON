@@ -1,24 +1,24 @@
-# FDNFA — Fully Differentiable Neural Forced Aligner
+# FALCON — Forced Alignment through Contrastive Optimization Networks
 
-[![Paper](https://img.shields.io/badge/Paper-IEEE%202026-blue)](https://arxiv.org/) [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2606.25460-b31b1b.svg)](https://arxiv.org/abs/2606.25460) [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**FDNFA** is an end-to-end, fully differentiable neural system for **phoneme-level and word-level (and also multilingual) forced alignment** — given a speech waveform and a known phoneme/words transcript sequence, it predicts precise phoneme boundary timestamps.
+**FALCON** (Forced Alignment through Contrastive Optimization Networks) is an end-to-end, fully differentiable neural system for **phoneme-level and word-level (and also multilingual) forced alignment** — given a speech waveform and a known phoneme/words transcript sequence, it predicts precise phoneme boundary timestamps.
 
 > Rotem Rousso, Eyal Cohen, Joseph Keshet  
-> *"Fully Differentiable Neural Phoneme and Word Level Forced Alignment via Soft Dynamic Programming"*  
-> IEEE Journal, 2026
+> *"Fully Differentiable Neural Forced Alignment via Soft Dynamic Programming"*  
+> Preprint, 2026 — [arXiv:2606.25460](https://arxiv.org/abs/2606.25460)
 
 ---
 
 ## Citation
 
-If you use FDNFA in your research, please cite:
+If you use FALCON in your research, please cite:
 
 ```bibtex
-@article{rousso2026fdnfa,
-  title     = {Fully Differentiable Neural Phoneme and Word Level Forced Alignment via Soft Dynamic Programming},
+@article{rousso2026falcon,
+  title     = {Fully Differentiable Neural Forced Alignment via Soft Dynamic Programming},
   author    = {Rousso, Rotem and Cohen, Eyal and Keshet, Joseph},
-  journal   = {IEEE Journal},
+  journal   = {arXiv preprint arXiv:2606.25460},
   year      = {2026}
 }
 ```
@@ -65,9 +65,52 @@ Raw waveform (16 kHz)
 
 ---
 
-## Clone Repository
+## Example
+
+FALCON aligns the example [`fasw0sa2.wav`](assets/fasw0sa2.wav) — a TIMIT sentence, *"Don't ask me to carry an oily rag like that."* — using the included English checkpoint. The same utterance is provided in every supported input format so you can try them in the web demo: [`.phn`](assets/fasw0sa2.phn) (phonemes), [`.wrd`](assets/fasw0sa2.wrd) (words), and [`.txt`](assets/fasw0sa2.txt) (plain transcript).
+
+**Waveform with predicted phoneme boundaries:**
+
+![FALCON phoneme alignment example](assets/example_alignment.png)
+
+**Under the hood — every representation on one shared time axis.** Waveform, log-mel spectrogram, the phoneme posteriors, the Soft-DP cost matrix with its backtracked alignment path, and the contrastive boundary score with its derivative. The *same* predicted boundaries (crimson dashed) and ground-truth boundaries (charcoal dotted) line up across all panels, with the input phonemes written under each axis, so every component's contribution is visible at a glance:
+
+![FALCON aligned representations](assets/example_panels.png)
+
+**Output** (first rows of the `phones` tier; the full alignment is written to a Praat `.TextGrid`):
+
+| Phoneme | Start (s) | End (s) |
+|:--|--:|--:|
+| h#  | 0.000 | 0.121 |
+| d   | 0.121 | 0.141 |
+| ow  | 0.141 | 0.313 |
+| n   | 0.313 | 0.333 |
+| q   | 0.333 | 0.434 |
+| ae  | 0.434 | 0.575 |
+| s   | 0.575 | 0.645 |
+| epi | 0.645 | 0.726 |
+| m   | 0.726 | 0.776 |
+| iy  | 0.776 | 0.897 |
+| …   |       |       |
+
+Reproduce:
+
 ```bash
-git clone https://github.com/<your_username>/FDNFA.git
+# alignment + TextGrid
+python generate_textgrids.py --wav assets/fasw0sa2.wav --mode phoneme --lang english --annotation phn
+
+# the multi-panel "under the hood" figure
+python falcon_viz.py
+```
+
+---
+
+## Clone Repository
+
+> **Note:** the official public release will be hosted at **[github.com/MLSpeech/FALCON](https://github.com/MLSpeech/FALCON)** (as referenced in the paper). This repository (`github.com/RotemRousso/FDNFA`) is the active development version.
+
+```bash
+git clone https://github.com/RotemRousso/FDNFA.git
 cd FDNFA
 ```
 
@@ -81,8 +124,8 @@ cd FDNFA
 
 ### Option 1 — Conda (recommended)
 ```bash
-conda create -n FDNFA python=3.8
-conda activate FDNFA
+conda create -n falcon python=3.8
+conda activate falcon
 pip install -r requirements.txt
 ```
 
@@ -97,7 +140,7 @@ pip install -r requirements.txt
 
 ## Data Format
 
-FDNFA expects data in **TIMIT-style** format:
+FALCON expects data in **TIMIT-style** format:
 
 ```
 <dataset_root>/
@@ -148,11 +191,11 @@ hydra:
 Then run:
 
 ```bash
-conda activate FDNFA
+conda activate falcon
 python main.py
 ```
 
-Checkpoints are saved every epoch as `{epoch}_best_model.pt` in the Hydra run directory. Training progress is logged to [Weights & Biases](https://wandb.ai) (project `DCAF2.0`).
+Checkpoints are saved every epoch as `{epoch}_best_model.pt` in the Hydra run directory. Training progress is logged to [Weights & Biases](https://wandb.ai) (project `FALCON`; override with `WANDB_PROJECT`).
 
 To disable W&B logging:
 ```bash
@@ -175,12 +218,12 @@ WANDB_MODE=disabled python main.py
 
 ## Pretrained Checkpoints
 
-Two checkpoints ship with the repo (under `pretrained_models/`):
+Two checkpoints are used by FALCON (under `pretrained_models/`):
 
 | File | Trained on | Best for |
 |------|------------|----------|
-| `fdnfa_timit_english.pt`      | TIMIT (read English)            | English phoneme alignment |
-| `fdnfa_joint_multilingual.pt` | Joint TIMIT+Buckeye             | **Best for cross-lingual / multilingual zero-shot alignment** (Dutch, German, Hebrew, ...) at both phoneme and word level — the joint model generalizes better to unseen languages than either single-corpus model. |
+| `falcon_timit_english.pt`      | TIMIT (read English)            | English phoneme alignment |
+| `falcon_joint_multilingual.pt` | Joint TIMIT+Buckeye             | **Best for cross-lingual / multilingual zero-shot alignment** (Dutch, German, Hebrew, ...) at both phoneme and word level — the joint model generalizes better to unseen languages than either single-corpus model. |
 
 The CLI tools (`predict.py`, `generate_textgrids.py`, `test_results.py`) and the
 web demo (`app.py`) all auto-pick the right one from the `--lang` flag — pass
@@ -194,23 +237,35 @@ as Space Secrets — `app.py` will download both files from that repo on first u
 
 ## Web Demo (Interactive Inference)
 
-FDNFA includes an interactive Gradio web interface for zero-shot forced alignment.
+FALCON includes an interactive Gradio web interface for zero-shot forced alignment.
 Upload audio of any sample rate along with a plain-text transcript (or standard
 annotation file), and instantly visualize predicted boundaries, the Soft-DP path,
 and download a TextGrid.
 
 ```bash
-conda activate FDNFA
+conda activate falcon
 python app.py
 ```
 
-This launches a local server (default `http://localhost:7860`).
+This launches a local server (default `http://localhost:7860`). Inputs (audio, transcript, options) are on the left; the **Alignment Data** and **Visualizations** tabs are on the right.
 
-**Key features:**
-- **Annotation flexibility:** `.phn` (phoneme timestamps), `.wrd` (word timestamps), or `.txt` (plain phoneme/word sequence — no timestamps needed).
-- **Auto checkpoint selection:** Switching the *Language* radio (english / multilingual) automatically picks the matching pretrained checkpoint. You can override the selection or upload your own `.pt`.
-- **Audio auto-resampling:** Any sample rate; resampled to 16 kHz mono internally.
-- **Two output tabs:** *Alignment Data* (audio playback + boundary table + downloadable TextGrid) and *Visualizations* (latent features, Soft-DP matrix, BiLSTM probabilities/logits).
+![FALCON web demo — alignment data (boundary tables + TextGrid download)](assets/app_screen.jpeg)
+
+![FALCON web demo — time-aligned visualizations](assets/app_screen2.jpeg)
+
+**How to use it** — upload audio (any sample rate; resampled to 16 kHz internally) and a transcript, set the options, and click **Run Alignment**:
+
+| Option | What it does |
+|---|---|
+| **Mode** | `phoneme` — align the phonemes; `word` — align words (boundaries derived from the predicted phonemes). |
+| **Language** | `english` — transcript is already TIMIT-39 phonemes (no G2P); `multilingual` — any other language (runs the G2P path). Auto-selects the matching checkpoint. |
+| **Pretrained checkpoint** | *Read English* (TIMIT), *Spontaneous English* (Buckeye), or *Multilingual* (joint). Follows **Language** by default; override it, or upload your own `.pt`. |
+| **Word G2P** *(word mode)* | *Auto* (recommended — best backend for the language), *espeak*, *MFA-like*, or *none* (romanization — only for languages with no G2P model). If the chosen backend lacks the language it falls back automatically. |
+| **Input language** *(word mode)* | Optional but recommended — lets *Auto* pick the right G2P and set the voice/dictionary behind the scenes. |
+| **Annotation** | `.phn` (phoneme timestamps), `.wrd` (word timestamps), or `.txt` (plain token sequence, no timestamps). |
+| **φ weight** | Acoustic ↔ linguistic balance in the Soft-DP (0.5 default). |
+
+**Outputs:** the **Alignment Data** tab gives the boundary tables and a downloadable Praat `.TextGrid`; the **Visualizations** tab shows the time-aligned panels (waveform · spectrogram · phoneme posteriors · Soft-DP path · contrastive score).
 
 ---
 
@@ -219,12 +274,12 @@ This launches a local server (default `http://localhost:7860`).
 The main entry point for generating alignments is `generate_textgrids.py`. This script processes your audio and annotations, and outputs standard Praat `.TextGrid` files ready for linguistic analysis (similar to tools like Montreal Forced Aligner).
 
 `--ckpt` is optional — if omitted, the bundled TIMIT checkpoint is used for
-`--lang english` and the Buckeye checkpoint for `--lang multilingual`.
+`--lang english` and the joint TIMIT+Buckeye checkpoint for `--lang multilingual`.
 
 ### Option 1: Single File
 
 ```bash
-conda activate FDNFA
+conda activate falcon
 python generate_textgrids.py \
   --wav  /path/to/audio.wav \
   --mode phoneme \
@@ -235,7 +290,7 @@ python generate_textgrids.py \
 ### Option 2: Full Dataset Directory
 
 ```bash
-conda activate FDNFA
+conda activate falcon
 python generate_textgrids.py \
   --wav_dir /path/to/dataset/test/ \
   --mode    word \
@@ -249,7 +304,7 @@ python generate_textgrids.py \
 |------|---------|---------|-------------|
 | `--wav` | file path | — | Path to a single input `.wav` file (16 kHz mono) |
 | `--wav_dir` | directory path | — | Path to a directory containing `.wav` files to process |
-| `--ckpt` | file path | bundled | Path to a trained checkpoint (`.pt`). Defaults to `pretrained_models/fdnfa_timit_english.pt` (or `fdnfa_joint_multilingual.pt` when `--lang multilingual`). |
+| `--ckpt` | file path | bundled | Path to a trained checkpoint (`.pt`). Defaults to `pretrained_models/falcon_timit_english.pt` (or `falcon_joint_multilingual.pt` when `--lang multilingual`). |
 | `--mode` | `phoneme`, `word` | `phoneme` | Alignment granularity. `phoneme` = phoneme-level (default). `word` = word-level alignment (zero-shot). |
 | `--lang` | `english`, `multilingual` | `english` | Language setting. `english` = trained English phoneme alignment. `multilingual` = any non-English language (zero-shot cross-lingual). |
 | `--annotation` | any string | `phn` | Annotation file extension to look for. Use `txt` for plain text transcripts, or standard extensions (e.g. `phn`, `wrd`). |
@@ -265,7 +320,7 @@ python generate_textgrids.py --wav_dir my_dataset/
 # English word-level (zero-shot)
 python generate_textgrids.py --wav_dir my_dataset/ --mode word --annotation wrd
 
-# Multilingual phoneme-level (zero-shot — uses Buckeye checkpoint)
+# Multilingual phoneme-level (zero-shot — uses joint TIMIT+Buckeye checkpoint)
 python generate_textgrids.py --wav_dir my_dataset/ --lang multilingual --annotation phn
 
 # Plain-text transcript (no timestamps needed)
@@ -284,7 +339,7 @@ python generate_textgrids.py --wav_dir my_dataset/ --mode word --annotation txt
 Evaluate a checkpoint over a directory of `.wav` files and report precision at multiple time thresholds:
 
 ```bash
-conda activate FDNFA
+conda activate falcon
 python test_results.py \
   --wav  /path/to/test/wavs/ \
   --mode phoneme \
@@ -311,9 +366,9 @@ Reports precision at 10, 15, 20, 25, 50, and 100 ms tolerances.
 
 ## Multilingual / Cross-Lingual Alignment
 
-FDNFA can align speech in **unseen languages** (Dutch, German, Hebrew, and others) without any additional training. Phonemes from the target language are automatically mapped to the Lee-Hon 39 set used during English training via articulatory feature distance ([PanPhon](https://github.com/dmort27/panphon)).
+FALCON can align speech in **unseen languages** (Dutch, German, Hebrew, and others) without any additional training. Phonemes from the target language are automatically mapped to the Lee-Hon 39 set used during English training via articulatory feature distance ([PanPhon](https://github.com/dmort27/panphon)).
 
-Just pass `--lang multilingual` — this both selects the Buckeye-trained
+Just pass `--lang multilingual` — this both selects the joint TIMIT+Buckeye
 checkpoint (which generalizes better cross-lingually) and routes the input
 through the G2P/articulatory-mapping pipeline:
 
@@ -333,7 +388,7 @@ python generate_textgrids.py \
 Visualize how the CNN encoder learns phoneme-boundary-sensitive representations:
 
 ```bash
-conda activate FDNFA
+conda activate falcon
 python visualize_latent_representation.py \
   --wav     /path/to/audio.wav \
   --run-dir /path/to/training/run/directory/
@@ -350,7 +405,7 @@ Saves four heatmap plots to `<run_dir>/latent_representations/`:
 ## Project Structure
 
 ```
-FDNFA/
+FALCON/
 ├── app.py                           # Gradio web demo
 ├── generate_textgrids.py            # MFA-style CLI for TextGrid output
 ├── main.py                          # Training entry point
@@ -363,12 +418,12 @@ FDNFA/
 ├── dutch_preprocess.py              # Cross-lingual phoneme mapping
 ├── visualize_latent_representation.py
 ├── pretrained_models/               # Bundled checkpoints (or HF Hub at runtime)
-│   ├── fdnfa_timit_english.pt
-│   └── fdnfa_joint_multilingual.pt
+│   ├── falcon_timit_english.pt
+│   └── falcon_joint_multilingual.pt
 ├── conf/
 │   └── config.yaml                  # All hyperparameters (Hydra)
 ├── scripts/                         # Data preparation & utilities
-├── archive/                         # Old scripts and backups
+├── assets/                          # README screenshots & example figures
 ├── requirements.txt
 ```
 

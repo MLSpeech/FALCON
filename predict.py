@@ -244,11 +244,11 @@ def main_predict(wav, ckpt, w_phi, language="english", annotation="phn", no_plot
     return pred_bound, truth_bound, mapped_ph
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CKPT_ENGLISH      = os.path.join(_SCRIPT_DIR, "pretrained_models", "fdnfa_timit_english.pt")
+DEFAULT_CKPT_ENGLISH      = os.path.join(_SCRIPT_DIR, "pretrained_models", "falcon_timit_english.pt")
 # The joint TIMIT+Buckeye model generalizes best to unseen languages — it is the
 # strongest checkpoint on every multilingual test set (Dutch/German/Hebrew,
 # phoneme and word) — so it is the default for the multilingual / cross-lingual path.
-DEFAULT_CKPT_MULTILINGUAL = os.path.join(_SCRIPT_DIR, "pretrained_models", "fdnfa_joint_multilingual.pt")
+DEFAULT_CKPT_MULTILINGUAL = os.path.join(_SCRIPT_DIR, "pretrained_models", "falcon_joint_multilingual.pt")
 
 def resolve_internal_language(lang: str, mode: str, annotation: str) -> str:
     """
@@ -271,8 +271,8 @@ if __name__ == "__main__":
     parser.add_argument('--wav', help='path to wav file')
     parser.add_argument('--ckpt', default=None,
                         help='Path to checkpoint file. If omitted, uses '
-                             'pretrained_models/fdnfa_timit_english.pt for --lang english '
-                             'or fdnfa_joint_multilingual.pt for --lang multilingual '
+                             'pretrained_models/falcon_timit_english.pt for --lang english '
+                             'or falcon_joint_multilingual.pt for --lang multilingual '
                              '(the joint TIMIT+Buckeye model is best for cross-lingual zero-shot).')
 
     parser.add_argument('--mode', type=str, default='phoneme', choices=['phoneme', 'word'],

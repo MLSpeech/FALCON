@@ -147,7 +147,7 @@ def process_single_file(wav_path, ckpt, mode, lang, annotation):
     print(f"Saved TextGrid to {out_path}")
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate TextGrid files from FDNFA predictions')
+    parser = argparse.ArgumentParser(description='Generate TextGrid files from FALCON predictions')
     parser.add_argument('--wav', help='path to a single wav file')
     parser.add_argument('--wav_dir', help='path to a directory of wav files')
     parser.add_argument('--ckpt', default=None,

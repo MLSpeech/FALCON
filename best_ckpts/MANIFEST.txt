@@ -1,4 +1,4 @@
-Best FDNFA checkpoint per case (symlinks; .pt distributed via HF, gitignored).
+Best FALCON checkpoint per case (symlinks; .pt distributed via HF, gitignored).
 Selected on the standard test splits with the corrected test_results.py metric.
 
   best_for_english_phn.pt       -> TIMIT specialist  (ep57)   TIMIT phoneme @25=83.88
@@ -9,4 +9,4 @@ Selected on the standard test splits with the corrected test_results.py metric.
   best_for_multilingual_wrd.pt  -> joint TIMIT+Buckeye(b8 ep15) Dutch 41.85 / German 49.48 / Hebrew 41.95 @25
 
 The joint model is the best multilingual checkpoint across all languages and both levels,
-and is bundled as pretrained_models/fdnfa_joint_multilingual.pt (app multilingual default).
+and is bundled as pretrained_models/falcon_joint_multilingual.pt (app multilingual default).

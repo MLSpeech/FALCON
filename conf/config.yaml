@@ -4,51 +4,10 @@ hydra:
     dir: runs/${now:%Y-%m-%d_%H-%M-%S}-${exp_name}
 
 # DATA
-libri_path: /data/felix/datasets/librispeech
-# buckeye_path: /home/rotem/projects/datasets/buckeye_playground/
-
-# buckeye_path: /home/rotem/projects/datasets/IFA_dutch_reorder
-
-# buckeye_path: /home/rotem/projects/datasets/buckeye_preprocessed/
+# Point these at your local dataset roots before training/evaluating.
 buckeye_path: /home/rotem/projects/datasets/buckeye_preprocessed/
-# buckeye_path: /home/rotem/projects/datasets/IFA_dutch_reorder
-# buckeye_path: /home/rotem/projects/datasets/buckeye_playground
-
-
-# ---------------------- July 14 ----------------------
-# buckeye_path: /home/rotem/projects/datasets/IFA_dutch_reorder
-
-# /home/rotem/projects/datasets/buckeye #/data/felix/datasets/buckeye_processed_by_speaker_balanced
 timit_path: /home/rotem/projects/datasets/timit/timit_tixed
 
-
-# timit_path: /home/rotem/projects/datasets/timit/timit_tixed
-# --------------!!!! MAY 8 !!!! ------------
-# --------------!!!! MAY 11 !!!! ------------
-# timit_path: /home/rotem/projects/datasets/IFA_dutch_reorder/
-# timit_path: /home/rotem/projects/datasets/timit/timit_tixed/
-
-
-# timit_path: /home/rotem/projects/datasets/buckeye_preprocessed/ 
-# timit_path: /home/rotem/projects/datasets/IFA_dutch_reorder
-
-# timit_path: /home/rotem/projects/datasets/IFA_dutch_split/
-# timit_path: /home/rotem/projects/datasets/timit_playground_fixed/
-
-# timit_path: /home/rotem/projects/datasets/timit/timit_tixed/
-
-
-# timit_path: /home/rotem/projects/CFA/changed_NFC_negative_not_random/overfit_check_data_timit
-# timit_path: /home/rotem/projects/SelfSupSegFA/SegFA_Rotem/datasets_SegFA/timit
-# timit_path: /home/rotem/projects/SelfSupSegFA/SegFA_Rotem/datasets_SegFA/timit_playground
-# timit_path: /home/rotem/projects/datasets/timit_playground_fixed
-# timit_path: /home/rotem/projects/SelfSupSegFA/SegFA_Rotem/datasets_SegFA/timit
-
-
-# /home/mlspeech/rotem/projects/SelfSupSegFA/SegFA_Rotem/datasets_SegFA/timit_fixed
-#/data/felix/datasets/timit
-libri_subset: train-clean-100
-libri_percent: 1.0
 buckeye_percent: 1.0
 val_ratio: 0.1 #0.05 #0.1 #0.001 #0.1 #0.0001 #0.1  # ratio of validation set #need to check if it really reads from this config
 val_count: None #2 # None

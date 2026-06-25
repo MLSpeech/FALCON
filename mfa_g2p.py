@@ -42,31 +42,54 @@ _LANG_CFG = {
     "de":    ("german_mfa.dict",      "ipa"),
 }
 _VOICE = os.environ.get("FDNFA_G2P_VOICE", "en-us")
+
+
+def _cfg_for_voice(voice):
+    """(dictionary path, phone alphabet) for an espeak-style voice code.
+    FDNFA_MFA_DICT overrides the dictionary path for the default voice only."""
+    voice = voice or _VOICE
+    dict_file, alphabet = _LANG_CFG.get(voice, ("english_us_arpa.dict", "arpa"))
+    if voice == _VOICE and os.environ.get("FDNFA_MFA_DICT"):
+        return os.environ["FDNFA_MFA_DICT"], alphabet
+    return os.path.join(_DICT_DIR, dict_file), alphabet
+
+
+def mfa_available(voice=None):
+    """True if an MFA pronunciation dictionary exists locally for this language.
+    Callers (e.g. the app) use this to decide whether to use the MFA-like G2P or
+    fall back to espeak when the dictionary isn't installed."""
+    dict_path, _ = _cfg_for_voice(voice)
+    return os.path.exists(dict_path)
+
+
+# Backwards-compatible module-level defaults (the default voice's config).
 _DICT_FILE, _ALPHABET = _LANG_CFG.get(_VOICE, ("english_us_arpa.dict", "arpa"))
-ARPA_DICT = os.environ.get("FDNFA_MFA_DICT", os.path.join(_DICT_DIR, _DICT_FILE))
+ARPA_DICT, _ = _cfg_for_voice(_VOICE)
 
 # Reuse the exact closure-insertion rule from the espeak front-end so the only
 # thing differing between the espeak and MFA word backends is the G2P.
 from word_g2p import USE_CLOSURES, _with_closures
 
-_dict = None          # {word_lower: [phones]}  (first/highest-prob entry)
-_cache = {}           # word_lower -> [lh39, ...]
-_oov = set()          # words not found in the dictionary (for reporting)
+_dicts = {}           # voice -> {word_lower: [phones]}  (highest-prob entry)
+_cache = {}           # (word_lower, voice) -> [lh39, ...]
+_oov = set()          # words not found in any dictionary (for reporting)
 
 
-def _load_dict():
-    """Parse the selected MFA dictionary once. Format: word <tab> [prob cols <tab>]
-    PHONES, where PHONES (final tab-separated field) is space-separated phones and
-    the first float column (when present) is the pronunciation probability.
+def _load_dict(voice=None):
+    """Parse the MFA dictionary for `voice` once (cached per voice). Format:
+    word <tab> [prob cols <tab>] PHONES, where PHONES (final tab-separated field)
+    is space-separated phones and the first float column (when present) is the
+    pronunciation probability.
 
     Like MFA, keep the **highest-probability** pronunciation per word (MFA's most-
     likely variant; it then disambiguates acoustically, which we cannot). Entries
     with no probability column are treated as probability 1.0."""
-    global _dict
-    if _dict is not None:
-        return _dict
+    voice = voice or _VOICE
+    if voice in _dicts:
+        return _dicts[voice]
+    dict_path, _alpha = _cfg_for_voice(voice)
     best = {}   # word -> (prob, phones)
-    with open(ARPA_DICT, "r", encoding="utf-8") as f:
+    with open(dict_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.rstrip("\n")
             if not line:
@@ -82,8 +105,8 @@ def _load_dict():
                 prob = 1.0
             if word and (word not in best or prob > best[word][0]):
                 best[word] = (prob, phones)
-    _dict = {w: ph for w, (_, ph) in best.items()}
-    return _dict
+    _dicts[voice] = {w: ph for w, (_, ph) in best.items()}
+    return _dicts[voice]
 
 
 def arpa_to_lh39(phones):
@@ -140,22 +163,27 @@ def _g2p_oov(word):
         return []
 
 
-def word_to_lh39_mfa(word):
-    """Orthographic word -> list of LH39 phonemes via the selected MFA G2P."""
-    key = word.lower()
+def word_to_lh39_mfa(word, voice=None):
+    """Orthographic word -> list of LH39 phonemes via the MFA G2P for `voice`
+    (en-us/en -> english_us_arpa + pynini OOV; de -> german_mfa; nl -> dutch_cv).
+    `voice=None` uses the env default (FDNFA_G2P_VOICE), preserving the original
+    single-language behaviour."""
+    voice = voice or _VOICE
+    _dict_path, alphabet = _cfg_for_voice(voice)
+    key = (word.lower(), voice)
     if key in _cache:
         return _cache[key]
-    d = _load_dict()
-    phones = d.get(key)
+    d = _load_dict(voice)
+    phones = d.get(word.lower())
     if phones is None:
-        _oov.add(key)
-        # Pure MFA, no espeak. English OOV -> MFA's pynini WFST. German OOV is
-        # pre-resolved into the merged dictionary via MFA's own G2P. Any word
-        # still unresolved (e.g. Dutch, which has no MFA G2P model) becomes a
-        # single 'sil'/spn, exactly as MFA treats an unknown word.
-        if _ALPHABET == "arpa":
-            phones = _g2p_oov(key)
-    if _ALPHABET == "arpa":
+        _oov.add(word.lower())
+        # English OOV -> MFA's pynini WFST. German OOV is pre-resolved in the
+        # merged dictionary. Any word still unresolved (e.g. Dutch, which has no
+        # MFA G2P model) becomes a single 'sil', exactly as MFA treats an unknown
+        # word.
+        if alphabet == "arpa":
+            phones = _g2p_oov(word.lower())
+    if alphabet == "arpa":
         lh39 = arpa_to_lh39(phones) if phones else []
     else:
         lh39 = ipa_to_lh39(phones) if phones else []

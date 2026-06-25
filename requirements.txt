@@ -1,7 +1,6 @@
-# FDNFA — Fully Differentiable Neural Forced Aligner
+# FALCON — Forced Alignment through Contrastive Optimization Networks
 # Python >= 3.8 required
 # Install with: pip install -r requirements.txt
-# Or recreate the full environment: conda env create -f environment.yml
 
 # ── Core deep learning ──────────────────────────────────────────────────────
 torch==2.4.1

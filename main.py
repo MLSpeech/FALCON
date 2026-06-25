@@ -47,7 +47,7 @@ def main(cfg):
     # importing main.py doesn't trigger a W&B login. Project name is
     # configurable via the WANDB_PROJECT env var; disable entirely with
     # WANDB_MODE=disabled.
-    wandb.init(project=os.environ.get("WANDB_PROJECT", "FDNFA"))
+    wandb.init(project=os.environ.get("WANDB_PROJECT", "FALCON"))
     
     set_cuda_visible_devices(cfg.devices)
     device = torch.device("cuda")

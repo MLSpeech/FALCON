@@ -84,7 +84,7 @@ def word_to_lh39(word, voice=None, backend=None):
         voice = os.environ.get("FDNFA_G2P_VOICE", DEFAULT_VOICE)
     if backend == "mfa":
         import mfa_g2p  # lazy: mfa_g2p imports closure helpers from this module
-        return mfa_g2p.word_to_lh39_mfa(word)
+        return mfa_g2p.word_to_lh39_mfa(word, voice=voice)
     if backend == "char":
         return _char_word_lh39(word)
     return _espeak_word_lh39(word, voice)
