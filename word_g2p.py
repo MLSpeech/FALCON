@@ -17,6 +17,7 @@ espeak is a stand-alone open-source phonemizer (not MFA), so nothing here
 depends on the system we compare against at runtime.
 """
 import os
+import shutil
 import subprocess
 
 import panphon
@@ -52,14 +53,19 @@ def _with_closures(seq):
     return out
 
 
+# Prefer espeak-ng (more languages incl. Hebrew, actively maintained) when
+# installed; fall back to legacy espeak. Both accept the same -q --ipa -v flags.
+_ESPEAK_BIN = shutil.which("espeak-ng") or shutil.which("espeak") or "espeak"
+
+
 def _espeak_ipa(word, voice):
     try:
         out = subprocess.run(
-            ["espeak", "-q", "--ipa", "-v", voice, word],
+            [_ESPEAK_BIN, "-q", "--ipa", "-v", voice, word],
             capture_output=True, text=True, timeout=10,
         ).stdout
     except Exception as exc:  # espeak missing / failed -> caller handles empty
-        print(f"[word_g2p] espeak failed for {word!r}: {exc}")
+        print(f"[word_g2p] {_ESPEAK_BIN} failed for {word!r}: {exc}")
         return ""
     return out.strip().translate(_STRIP)
 
