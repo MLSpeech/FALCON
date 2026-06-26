@@ -1,6 +1,6 @@
 # FALCON — Forced Alignment through Contrastive Optimization Networks
 
-[![arXiv](https://img.shields.io/badge/arXiv-2606.25460-b31b1b.svg)](https://arxiv.org/abs/2606.25460) [![Hugging Face Spaces](https://img.shields.io/badge/Demo-Hugging%20Face%20Spaces-yellow)](https://huggingface.co/spaces/MLSpeech/FALCON) [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2606.25460-b31b1b.svg)](https://arxiv.org/abs/2606.25460) [![Project Page](https://img.shields.io/badge/Project-Page-4c1.svg)](https://mlspeech.github.io/FALCON/) [![Hugging Face Spaces](https://img.shields.io/badge/Demo-Hugging%20Face%20Spaces-yellow)](https://huggingface.co/spaces/MLSpeech/FALCON) [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **FALCON** (Forced Alignment through Contrastive Optimization Networks) is an end-to-end, fully differentiable neural system for **phoneme-level and word-level (and also multilingual) forced alignment** — given a speech waveform and a known phoneme/words transcript sequence, it predicts precise phoneme boundary timestamps.
 
