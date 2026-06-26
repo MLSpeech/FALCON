@@ -212,7 +212,7 @@ def _resolve_g2p(g2p_choice, lang_choice):
 OUTPUTS_NONE = (None, None, None, None, None)  # 5 None for the non-status outputs
 
 def run_alignment(audio_file, annotation_file, ckpt_upload, mode, lang,
-                  pretrained_choice, w_phi, g2p_choice="Auto (recommended)",
+                  pretrained_choice, g2p_choice="Auto (recommended)",
                   lang_choice="English (default)",
                   progress=gr.Progress(track_tqdm=True)):
     if not audio_file or not annotation_file:
@@ -323,7 +323,7 @@ def run_alignment(audio_file, annotation_file, ckpt_upload, mode, lang,
             pred_bound, _truth_bound, mapped_ph = main_predict(
                 wav=wav_path,
                 ckpt=ckpt_to_use,
-                w_phi=w_phi,
+                w_phi=0.5,  # placeholder; the model uses its own learned w_phi at inference
                 language=language,
                 annotation=ann_ext,
             )
@@ -480,8 +480,6 @@ with gr.Blocks(title="FALCON Forced Aligner", theme=gr.themes.Soft()) as demo:
             )
             ckpt_in   = gr.File(label="Or upload a custom checkpoint (.pt) — overrides pretrained",
                                 file_types=[".pt"], type="filepath")
-            wphi_in   = gr.Slider(0.0, 1.0, value=0.5, step=0.01,
-                                  label="φ weight (acoustic ↔ linguistic)")
             btn       = gr.Button("Run Alignment", variant="primary")
             status    = gr.Textbox(label="Status", interactive=False)
 
@@ -510,7 +508,7 @@ with gr.Blocks(title="FALCON Forced Aligner", theme=gr.themes.Soft()) as demo:
 
     btn.click(
         fn=run_alignment,
-        inputs=[audio_in, ann_in, ckpt_in, mode_in, lang_in, pretrained_in, wphi_in,
+        inputs=[audio_in, ann_in, ckpt_in, mode_in, lang_in, pretrained_in,
                 g2p_in, lang_g2p_in],
         outputs=[status, audio_out, img_panels,
                  tg_out, table_phn_out, table_orig_out],
